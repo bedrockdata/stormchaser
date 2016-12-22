@@ -1,0 +1,406 @@
+{
+  "streams": [
+    {
+      "grouping": {
+        "streamId": "default",
+        "type": "SHUFFLE"
+      },
+      "from": "cache_records",
+      "to": "schemafy_record"
+    },
+    {
+      "grouping": {
+        "streamId": "default",
+        "type": "SHUFFLE"
+      },
+      "from": "schemafy_record",
+      "to": "stamp_record_bolt"
+    },
+    {
+      "grouping": {
+        "streamId": "default",
+        "type": "SHUFFLE"
+      },
+      "from": "extract_dedupe_keys",
+      "to": "setup_mappings_request"
+    },
+    {
+      "grouping": {
+        "streamId": "default",
+        "type": "SHUFFLE"
+      },
+      "from": "setup_remote_record_upsert",
+      "to": "remote_record_upsert"
+    },
+    {
+      "grouping": {
+        "streamId": "default",
+        "type": "SHUFFLE"
+      },
+      "from": "mappings_request",
+      "to": "mapping_join_args"
+    },
+    {
+      "grouping": {
+        "streamId": "default",
+        "type": "SHUFFLE"
+      },
+      "from": "extract_dedupe_keys",
+      "to": "setup_entity_query"
+    },
+    {
+      "grouping": {
+        "streamId": "default",
+        "type": "SHUFFLE"
+      },
+      "from": "setup_mappings_request",
+      "to": "mappings_request"
+    },
+    {
+      "grouping": {
+        "streamId": "default",
+        "type": "SHUFFLE"
+      },
+      "from": "update_entity",
+      "to": "setup_entity_upsert"
+    },
+    {
+      "grouping": {
+        "streamId": "default",
+        "type": "SHUFFLE"
+      },
+      "from": "mapping_join_args",
+      "to": "join_bolt"
+    },
+    {
+      "grouping": {
+        "streamId": "default",
+        "type": "SHUFFLE"
+      },
+      "from": "query_join_args",
+      "to": "join_bolt"
+    },
+    {
+      "grouping": {
+        "streamId": "default",
+        "type": "SHUFFLE"
+      },
+      "from": "join_bolt",
+      "to": "update_entity"
+    },
+    {
+      "grouping": {
+        "streamId": "default",
+        "type": "SHUFFLE"
+      },
+      "from": "schemafy_record",
+      "to": "setup_remote_record_upsert"
+    },
+    {
+      "grouping": {
+        "streamId": "default",
+        "type": "SHUFFLE"
+      },
+      "from": "setup_entity_upsert",
+      "to": "update_entity_query"
+    },
+    {
+      "grouping": {
+        "streamId": "default",
+        "type": "SHUFFLE"
+      },
+      "from": "entity_query",
+      "to": "query_join_args"
+    },
+    {
+      "grouping": {
+        "streamId": "default",
+        "type": "SHUFFLE"
+      },
+      "from": "setup_entity_query",
+      "to": "entity_query"
+    },
+    {
+      "grouping": {
+        "streamId": "default",
+        "type": "SHUFFLE"
+      },
+      "from": "stamp_record_bolt",
+      "to": "extract_dedupe_keys"
+    }
+  ],
+  "bolts": [
+    {
+      "constructorArgs": [
+        [
+          "streamparse_run",
+          "bolts.schemafy_record.SchemafyRecord"
+        ],
+        [
+          "config",
+          "schemafied_record",
+          "record_id",
+          "record_data"
+        ]
+      ],
+      "id": "schemafy_record",
+      "className": "org.apache.storm.flux.wrappers.bolts.FluxShellBolt"
+    },
+    {
+      "constructorArgs": [
+        [
+          "streamparse_run",
+          "bolts.generate_guid.GuidBolt"
+        ],
+        [
+          "config",
+          "guid",
+          "schemafied_record",
+          "record_id",
+          "record_data"
+        ]
+      ],
+      "id": "stamp_record_bolt",
+      "className": "org.apache.storm.flux.wrappers.bolts.FluxShellBolt"
+    },
+    {
+      "constructorArgs": [
+        [
+          "streamparse_run",
+          "bolts.setup_mappings_request.SetupMappingsRequest"
+        ],
+        [
+          "config",
+          "request_opts",
+          "entity_keys",
+          "schemafied_record",
+          "record_id",
+          "record_data",
+          "record_guid"
+        ]
+      ],
+      "id": "setup_mappings_request",
+      "className": "org.apache.storm.flux.wrappers.bolts.FluxShellBolt"
+    },
+    {
+      "constructorArgs": [
+        [
+          "coffee",
+          "node/bolts/query.coffee"
+        ],
+        [
+          "config",
+          "results",
+          "schemafied_record",
+          "record_id",
+          "record_data"
+        ]
+      ],
+      "id": "remote_record_upsert",
+      "className": "org.apache.storm.flux.wrappers.bolts.FluxShellBolt"
+    },
+    {
+      "constructorArgs": [
+        [
+          "streamparse_run",
+          "bolts.setup_request_join_args.SetupRequestJoinArgs"
+        ],
+        [
+          "config",
+          "record_guid",
+          "mapping",
+          "entity_keys",
+          "final_schemafied_record",
+          "record_id",
+          "record_data"
+        ]
+      ],
+      "id": "mapping_join_args",
+      "className": "org.apache.storm.flux.wrappers.bolts.FluxShellBolt"
+    },
+    {
+      "constructorArgs": [
+        [
+          "streamparse_run",
+          "bolts.setup_entity_query.SetupEntityQuery"
+        ],
+        [
+          "config",
+          "opts",
+          "entity_keys",
+          "schemafied_record",
+          "record_id",
+          "record_data",
+          "record_guid"
+        ]
+      ],
+      "id": "setup_entity_query",
+      "className": "org.apache.storm.flux.wrappers.bolts.FluxShellBolt"
+    },
+    {
+      "constructorArgs": [
+        [
+          "coffee",
+          "node/bolts/authorized_request.coffee"
+        ],
+        [
+          "config",
+          "mappings_resp",
+          "entity_keys",
+          "schemafied_record",
+          "record_id",
+          "record_data",
+          "record_guid"
+        ]
+      ],
+      "id": "mappings_request",
+      "className": "org.apache.storm.flux.wrappers.bolts.FluxShellBolt"
+    },
+    {
+      "constructorArgs": [
+        [
+          "streamparse_run",
+          "bolts.setup_entity_upsert.UpsertEntityBolt"
+        ],
+        [
+          "config",
+          "opts"
+        ]
+      ],
+      "id": "setup_entity_upsert",
+      "className": "org.apache.storm.flux.wrappers.bolts.FluxShellBolt"
+    },
+    {
+      "constructorArgs": [
+        [
+          "coffee",
+          "node/bolts/join.coffee"
+        ],
+        [
+          "config",
+          "mappings"
+        ]
+      ],
+      "id": "join_bolt",
+      "className": "org.apache.storm.flux.wrappers.bolts.FluxShellBolt"
+    },
+    {
+      "constructorArgs": [
+        [
+          "streamparse_run",
+          "bolts.update_entity.UpdateEntityBolt"
+        ],
+        [
+          "config",
+          "entity"
+        ]
+      ],
+      "id": "update_entity",
+      "className": "org.apache.storm.flux.wrappers.bolts.FluxShellBolt"
+    },
+    {
+      "constructorArgs": [
+        [
+          "streamparse_run",
+          "bolts.setup_remote_record_upsert.UpsertRemoteRecordsBolt"
+        ],
+        [
+          "config",
+          "opts",
+          "schemafied_record",
+          "record_id",
+          "record_data"
+        ]
+      ],
+      "id": "setup_remote_record_upsert",
+      "className": "org.apache.storm.flux.wrappers.bolts.FluxShellBolt"
+    },
+    {
+      "constructorArgs": [
+        [
+          "coffee",
+          "node/bolts/query.coffee"
+        ],
+        [
+          "config",
+          "results"
+        ]
+      ],
+      "id": "update_entity_query",
+      "className": "org.apache.storm.flux.wrappers.bolts.FluxShellBolt"
+    },
+    {
+      "constructorArgs": [
+        [
+          "streamparse_run",
+          "bolts.setup_query_join_args.SetupQueryJoinArgs"
+        ],
+        [
+          "config",
+          "record_guid",
+          "entity",
+          "entity_keys",
+          "schemafied_record",
+          "record_id",
+          "record_data"
+        ]
+      ],
+      "id": "query_join_args",
+      "className": "org.apache.storm.flux.wrappers.bolts.FluxShellBolt"
+    },
+    {
+      "constructorArgs": [
+        [
+          "coffee",
+          "node/bolts/query.coffee"
+        ],
+        [
+          "config",
+          "entity",
+          "entity_keys",
+          "schemafied_record",
+          "record_id",
+          "record_data",
+          "record_guid"
+        ]
+      ],
+      "id": "entity_query",
+      "className": "org.apache.storm.flux.wrappers.bolts.FluxShellBolt"
+    },
+    {
+      "constructorArgs": [
+        [
+          "streamparse_run",
+          "bolts.extract_dedupe_keys.ExtractDedupeKeysBolt"
+        ],
+        [
+          "config",
+          "entity_keys",
+          "schemafied_record",
+          "record_id",
+          "record_data",
+          "record_guid"
+        ]
+      ],
+      "id": "extract_dedupe_keys",
+      "className": "org.apache.storm.flux.wrappers.bolts.FluxShellBolt"
+    }
+  ],
+  "spouts": [
+    {
+      "constructorArgs": [
+        [
+          "coffee",
+          "node/spouts/cache_records.coffee"
+        ],
+        [
+          "config",
+          "record_id",
+          "record_data"
+        ]
+      ],
+      "id": "cache_records",
+      "className": "org.apache.storm.flux.wrappers.spouts.FluxShellSpout"
+    }
+  ]
+}
