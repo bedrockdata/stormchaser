@@ -4,31 +4,92 @@ nodePath = require 'path'
 class TopologyManager
 
   constructor: () ->
+    @clients = {}
     @topologies = {}
+    @identities = {}
+
+    setInterval () =>
+      for name, config of @topologies
+        for guid, client of @clients
+          if config.totals
+            client.emit 'totals', config.totals
+    , 2000
 
   setSockets: (@sockets) ->
     @sockets.subscribe @onConnection
 
-    @sockets.on 'tup', (guid, data) ->
-      console.log "GOT TUP DATA", guid, data
+    @sockets.on 'tup', (guid, data) =>
+      topology = @identities[guid].topology
+      @handleTupData topology, data.tup
 
-  onConnection: (guid, client) ->
+  onConnection: (guid, client) =>
+    console.log "ON CONNECtiON", guid
     {socket, identity} = client    
     {type, graphs} = identity
 
-    if type isnt 'debug bolt'
+    if type is 'debug bolt'
+      @identities[guid] = identity
+
+      dirname = nodePath.resolve __dirname, '../graphs'
+      if not fs.existsSync(dirname)
+        fs.mkdirSync dirname
+
+      for name, graph of graphs
+        if @topologies[name]
+          @topologies[name].graph = graph
+        else
+          @topologies[name] =
+            graph: graph
+            record: false
+            totals:
+              total: 0
+              nodes: {}
+
+        fs.writeFileSync "#{dirname}/#{name}.json", JSON.stringify(graph, null, 2)
+
+    else
+      @clients[guid] = socket
+
+  handleTupData: (topology, tup) =>
+    config = @topologies[topology]
+
+    name = tup.component
+    if config.totals.nodes[name] is undefined
+      config.totals.nodes[name] = 0
+    config.totals.nodes[name] += 1
+
+    if not config.record
+      console.log "PASSING TUP THROUGH", topology
       return
 
-    dirname = nodePath.resolve __dirname, '../graphs'
-    if not fs.existsSync(dirname)
-      fs.mkdirSync dirname
+    else
+      console.log "RECORDING TUP", tup
 
-    for name, graph of graphs
-      fs.writeFileSync "#{dirname}/#{name}.json", JSON.stringify(graph, null, 2)
+  setRecordMode: (name, shouldRecord) ->
+    console.log "SET RECORD", name, shouldRecord
+
+    # Clear totals if we're just now engaging record
+    if not @topologies[name].record and shouldRecord
+      @topologies[topology].totals =
+        total: 0
+        nodes: {}
+
+    @topologies[name].record = shouldRecord
 
   loadTopology: (name, callback) ->
     dirname = nodePath.resolve __dirname, '../graphs'
     graph = require "#{dirname}/#{name}.json"
+
+    if @topologies[name]
+      @topologies[name].graph = graph
+    else
+      @topologies[name] =
+        graph: graph
+        record: false
+        totals:
+          total: 0
+          nodes: {}
+
     callback graph
 
   loadTopologies: (callback) ->

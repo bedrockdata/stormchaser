@@ -27,7 +27,7 @@ module.exports = [
       render: ->
         @$el.empty()
         @$el.html """
-          <p>#{(@model.get('events') || []).length}</p>
+          <p>#{@model.get('value')}</p>
         """
         @$el.css 'text-align', 'left'
         @delegateEvents()

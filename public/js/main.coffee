@@ -4,7 +4,7 @@ loadDeps = require './deps'
 
 loadDeps ->
   Router = require './router'
-  window.vulcan = {
+  window.stormchaser = {
     guid: uuid.v1()
     routers:
       main: new Router
@@ -12,8 +12,8 @@ loadDeps ->
     socket: io(window.location.origin)
   }
 
-  vulcan.socket.on 'connect', ->
-    vulcan.socket.emit 'identify',
-      guid: vulcan.guid
+  stormchaser.socket.on 'connect', ->
+    stormchaser.socket.emit 'identity',
+      type: 'client'
 
   Backbone.history.start()

@@ -13,7 +13,6 @@ class Sockets
     @io = Socket.listen @server
     @io.on 'connection', @onConnection
     @io.use (socket, next) =>
-      console.log "SOCKET MIDDLEWARE"
       @session socket.request, {}, next
 
   subscribe: (callback) ->
