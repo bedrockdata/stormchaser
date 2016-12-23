@@ -1,0 +1,8 @@
+h4 #{locals.id}
+
+.table-responsive
+  table.table.table-striped
+    thead
+      tr
+        each arg in locals.defs.constructorArgs[1]
+          td #{arg}
