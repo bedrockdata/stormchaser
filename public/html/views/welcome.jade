@@ -1,13 +1,3 @@
-.row.destacados
-  .col-md-4
-    div
-      a.welcome-page-link(href="#books")
-        img.welcome-link-img-circle.img-circle.img-thumbnail(src='/img/vendor/Fogthecatman/Explore.svg', alt='Texto Alternativo')
-        h2 Recipe Books
-        p Look through your recipe books
-  .col-md-4
-    div
-      a.welcome-page-link(href="#create")
-        img.welcome-link-img-circle.img-circle.img-thumbnail(src='/img/vendor/Fogthecatman/Create.svg', alt='Texto Alternativo')
-        h2 Create
-        p Define a new datatime or publish new streams, so that everyone can make use of your awesome data!
+.row
+  each topology, name in this.topologies
+    a.btn.btn-lrg.btn-primary(href="#topology/#{name}") #{name}

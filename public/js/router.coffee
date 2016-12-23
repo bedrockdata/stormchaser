@@ -8,6 +8,7 @@ LoginView = require './views/login'
 CreateView = require './views/create'
 LayoutView = require './views/layout'
 WelcomeView = require './views/welcome'
+TopologyDebugView = require './views/topology_debugger.coffee'
 
 Router = Backbone.Router.extend
   routes:
@@ -15,6 +16,7 @@ Router = Backbone.Router.extend
     'login': 'login'
     'books': 'books'
     'create': 'create'
+    'topology/:name': 'topology'
 
   initialize: ->
     @user = new User
@@ -48,6 +50,12 @@ Router = Backbone.Router.extend
 
     async.parallel fetchFns, (err, results) =>
       callback()
+
+  topology: (name) ->
+    @beforeRender {noAuth: true}, ->
+      view = new TopologyDebugView
+        name: name
+      $('.main-housing').html view.render().el
 
   login: ->
     @beforeRender {noAuth: true}, ->

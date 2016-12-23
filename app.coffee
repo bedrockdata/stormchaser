@@ -133,10 +133,6 @@ app.use (req, res, next) ->
 
 app.use express.static(path.join(__dirname, 'public'), maxAge: 31557600000)
 
-###*
-# Primary app routes.
-###
-
 app.get '/', (req, res) ->
   res.sendFile __dirname + '/index.html'
 app.get '/index.html', (req, res) ->
@@ -158,19 +154,12 @@ app.post '/account/delete', passportConf.isAuthenticated, userController.postDel
 app.get '/account/unlink/:provider', passportConf.isAuthenticated, userController.getOauthUnlink
 
 ###*
-# DataFountain routes
+# App routes
 ###
 
 app.get '/api/users', userController.getAll
-app.get '/api/summary', summaryController.summary
-app.get '/api/:user/streams/:streamId', userController.getStream
-app.get '/api/:user/streams', userController.getStreams
-app.get '/api/:user/datatypes', userController.getDataTypes
-app.post '/api/datatype', dataTypeController.create
-app.post '/api/stream', streamController.create
-app.delete '/api/stream', streamController.delete
-app.post '/api/:user/streams/:streamId', ->
-  streamController.push.apply streamController, arguments
+app.get '/api/topologies', topologyController.getTopologies
+app.get '/api/topologies/:name', topologyController.getTopology
 
 googleAuth = passport.authenticate 'google',
   failureRedirect: '/#login'
