@@ -1,7 +1,7 @@
 
 TableUtils =
 
-  indexCell: ->
+  indexCell: (opts={}) ->
     {
       editable: false
       sortable: false
@@ -12,12 +12,12 @@ TableUtils =
           index = @model.collection.indexOf(@model) + 1
           # index += this.model.collection.state.pageSize * (this.model.collection.state.currentPage - 1)
           @$el.text(@formatter.fromRaw(index))
-          @$el.css 'text-align', 'center'
+          @$el.css 'text-align', opts.align || 'center'
           @delegateEvents()
           return @
     }
 
-  textLinkToSelf: (key, label, getUrl) ->
+  textLinkToSelf: (key, label, getUrl, opts={}) ->
     {
       editable: false
       sortable: false
@@ -26,33 +26,14 @@ TableUtils =
         render: ->
           @$el.empty()
           @$el.html """
-            <a href="##{getUrl(@model)}">#{@model.get(key)}</a>
+            <a class="#{opts.class || ''}" href="#{getUrl(@model)}">#{@model.get(key)}</a>
           """
-          @$el.css 'text-align', 'center'
+          @$el.css 'text-align', opts.align || 'center'
           @delegateEvents()
           return @
     }
 
-  arrayLinkToSelf: (key, label, getUrl) ->
-    {
-      editable: false
-      sortable: false
-      label: label
-      cell: Backgrid.IntegerCell.extend
-        render: ->
-          @$el.empty()
-
-          array = @model.get(key) || []
-
-          @$el.html """
-            <a href="##{getUrl(@model)}">[ #{array.join(', ')} ]</a>
-          """
-          @$el.css 'text-align', 'center'
-          @delegateEvents()
-          return @
-    }
-
-  arrayLengthLinkToSelf: (key, label, getUrl) ->
+  arrayLinkToSelf: (key, label, getUrl, opts={}) ->
     {
       editable: false
       sortable: false
@@ -64,14 +45,33 @@ TableUtils =
           array = @model.get(key) || []
 
           @$el.html """
-            <a href="##{getUrl(@model)}">#{array.length}</a>
+            <a href="#{getUrl(@model)}">[ #{array.join(', ')} ]</a>
           """
-          @$el.css 'text-align', 'center'
+          @$el.css 'text-align', opts.align || 'center'
           @delegateEvents()
           return @
     }
 
-  button: (label, onClick) ->
+  arrayLengthLinkToSelf: (key, label, getUrl, opts={}) ->
+    {
+      editable: false
+      sortable: false
+      label: label
+      cell: Backgrid.IntegerCell.extend
+        render: ->
+          @$el.empty()
+
+          array = @model.get(key) || []
+
+          @$el.html """
+            <a href="#{getUrl(@model)}">#{array.length}</a>
+          """
+          @$el.css 'text-align', opts.align || 'center'
+          @delegateEvents()
+          return @
+    }
+
+  button: (label, onClick, opts={}) ->
     {
       editable: false
       sortable: false
@@ -88,7 +88,7 @@ TableUtils =
           @$(".table-button-#{guid}").on 'click', (event) =>
             onClick event, @model
 
-          @$el.css 'text-align', 'center'
+          @$el.css 'text-align', opts.align || 'center'
           @delegateEvents()
           return @
     }
