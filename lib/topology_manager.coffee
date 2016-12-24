@@ -1,4 +1,5 @@
 fs = require 'fs'
+db = require('arangojs')()
 nodePath = require 'path'
 
 class TopologyManager
@@ -7,6 +8,8 @@ class TopologyManager
     @clients = {}
     @topologies = {}
     @identities = {}
+
+    db.useDatabase 'stormchaser'
 
     setInterval () =>
       for name, config of @topologies
@@ -23,7 +26,6 @@ class TopologyManager
       @handleTupData topology, data.tup
 
   onConnection: (guid, client) =>
-    console.log "ON CONNECtiON", guid
     {socket, identity} = client    
     {type, graphs} = identity
 
@@ -54,23 +56,33 @@ class TopologyManager
     config = @topologies[topology]
 
     name = tup.component
+    config.totals.total += 1
     if config.totals.nodes[name] is undefined
       config.totals.nodes[name] = 0
     config.totals.nodes[name] += 1
 
     if not config.record
-      console.log "PASSING TUP THROUGH", topology
-      return
-
+      console.log "PASSING THROUGH TUP", topology, tup.id
     else
-      console.log "RECORDING TUP", tup
+      console.log "RECORDING TUP", topology, tup.id
+      
+      tup._key = tup.id
+
+      tupQuery = """
+        UPSERT {_key: "#{tup.id}"}
+        INSERT #{JSON.stringify(tup)}
+        UPDATE #{JSON.stringify(tup)} in tups
+      """
+
+      db.query tupQuery, (err, cursor) =>
+
 
   setRecordMode: (name, shouldRecord) ->
     console.log "SET RECORD", name, shouldRecord
 
     # Clear totals if we're just now engaging record
     if not @topologies[name].record and shouldRecord
-      @topologies[topology].totals =
+      @topologies[name].totals =
         total: 0
         nodes: {}
 
