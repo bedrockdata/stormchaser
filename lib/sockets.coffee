@@ -37,7 +37,6 @@ class Sockets
   onConnection: (socket) =>
     @identifySocket socket, (identity) =>
       guid = uuid.v1()
-      console.log "GOT SOCKET CONNECTION", guid
       
       client =
         identity: identity

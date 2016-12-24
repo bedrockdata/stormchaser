@@ -116,18 +116,22 @@ View = Backbone.View.extend
     streams = []
 
     for bolt in @topology.bolts
+      total = @totals?.nodes[bolt.id] || 0
       nodes.push
         id: bolt.id
         type: 'bolt'
-        value: @totals?.nodes[bolt.id] || 0
+        value: total
         label: bolt.id
+        title: "#{bolt.id} - #{total} captured"
 
     for spout in @topology.spouts
+      total = @totals?.nodes[bolt.id] || 0
       nodes.push
         id: spout.id
         type: 'spout'
-        value: @totals?.nodes[spout.id] || 0
+        value: total
         label: spout.id
+        title: "#{spout.id} - #{total} captured"
         shape: 'triangle'
 
     for stream in @topology.streams
