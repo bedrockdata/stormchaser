@@ -33,8 +33,10 @@ View = Backbone.View.extend
       @setupTopoGraph()
       @setupControls()
 
-      @network.selectNodes [@nodes[0].id]
-      @inspectNode @nodes[0].id
+      selected = @nodes.get()[0].id
+
+      @network.selectNodes [selected]
+      @inspectNode selected
 
     @
 
@@ -103,7 +105,7 @@ View = Backbone.View.extend
     @$('.node-inspect-container').html @inspectNodeTemplate(context)
 
   setupControls: ->
-    @collection = new Backbone.Collection @nodes
+    @collection = new Backbone.Collection @nodes.get()
     window.collection = @collection
     window.table = @table = new Backgrid.Grid
       columns: require './columns'
@@ -112,12 +114,12 @@ View = Backbone.View.extend
     @$('.results-table-container').html @table.render().el
 
   getNetworkData: ->
-    nodes = []
-    streams = []
+    nodes = new vis.DataSet
+    streams = new vis.DataSet
 
     for bolt in @topology.bolts
       total = @totals?.nodes[bolt.id] || 0
-      nodes.push
+      nodes.add
         id: bolt.id
         type: 'bolt'
         value: total
@@ -126,7 +128,7 @@ View = Backbone.View.extend
 
     for spout in @topology.spouts
       total = @totals?.nodes[bolt.id] || 0
-      nodes.push
+      nodes.add
         id: spout.id
         type: 'spout'
         value: total
@@ -135,7 +137,7 @@ View = Backbone.View.extend
         shape: 'triangle'
 
     for stream in @topology.streams
-      streams.push
+      streams.add
         from: stream.from
         to: stream.to
         value: 1
@@ -144,11 +146,14 @@ View = Backbone.View.extend
     {streams: streams, nodes: nodes}
 
   updateTopoGraph: ->
-    {nodes, streams} = @getNetworkData()
 
-    @network.setData
-      nodes: nodes
-      edges: streams
+    for name, total of @totals.nodes
+      @network.nodesHandler.body.data.nodes.update [
+        {
+          id: name
+          value: total
+        }
+      ]
 
   setupTopoGraph: ->
     {nodes, streams} = @getNetworkData()
