@@ -52,6 +52,10 @@ View = Backbone.View.extend
 
     @table.render()
     @updateTopoGraph()
+    @updateTotalsDisplay()
+
+  updateTotalsDisplay: ->
+    @$('.total-display').text "#{@totals.total} events captured"
 
   recordStopClicked: (event) ->
     event.preventDefault()
