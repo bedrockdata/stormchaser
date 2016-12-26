@@ -6,6 +6,6 @@ h3 #{locals.id}
       tr
         td fields
     tbody
-      each arg in locals.defs.constructorArgs[1]
+      each arg, index in locals.defs.constructorArgs[1]
         tr 
-          td #{arg}
+          td #{index}: #{arg}

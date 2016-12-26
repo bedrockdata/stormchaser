@@ -16,6 +16,10 @@ class TopologyManager
         for guid, client of @clients
           if config.totals
             client.emit 'totals', config.totals
+          else
+            @calculateTotals name, config, (totals) ->
+              config.totals = totals
+              client.emit 'totals', config.totals
     , 2000
 
   setSockets: (@sockets) ->
@@ -23,7 +27,43 @@ class TopologyManager
 
     @sockets.on 'tup', (guid, data) =>
       topology = @identities[guid].topology
-      @handleTupData topology, data.tup
+      @handleTupData topology, data.tup, ->
+        null
+
+  search: (config, callback) ->
+    console.log "SEARCHING WITH", config
+
+    if config.value is ""
+      query = """
+        for tup in tups
+          FILTER tup.component == "#{config.source}"
+          LIMIT #{config.limit || 10}
+          RETURN tup
+      """
+
+    else
+
+      if config.path
+        filter = """
+          FILTER tup.values[#{config.index}].#{path} == #{config.value}
+        """
+      else
+        filter = """
+          FILTER tup.values[#{config.index}] == #{config.value}
+        """
+
+      query = """
+        FOR tup IN tups
+          #{filter}
+          LIMIT #{config.limit || 10}
+          RETURN tup
+      """
+
+    console.log "FINAL QUERY", query
+
+    db.query query, (err, cursor) ->
+      cursor.all (err, results) ->
+        callback results
 
   onConnection: (guid, client) =>
     {socket, identity} = client    
@@ -43,23 +83,35 @@ class TopologyManager
           @topologies[name] =
             graph: graph
             record: false
-            totals:
-              total: 0
-              nodes: {}
 
         fs.writeFileSync "#{dirname}/#{name}.json", JSON.stringify(graph, null, 2)
 
     else
       @clients[guid] = socket
 
-  handleTupData: (topology, tup) =>
-    config = @topologies[topology]
+  calculateTotals: (name, config, callback) ->
+    query = """
+      for tup in tups
+        COLLECT component = tup.component WITH COUNT INTO total
+        return {component, total}
+    """
 
-    name = tup.component
-    config.totals.total += 1
-    if config.totals.nodes[name] is undefined
-      config.totals.nodes[name] = 0
-    config.totals.nodes[name] += 1
+    db.query query, (err, cursor) =>
+      cursor.all (err, results) =>
+        total = 0
+        nodes = {}
+        for result in results
+          total += result.total
+          nodes[result.component] = result.total
+
+        totals =
+          total: total
+          nodes: nodes
+
+        callback totals
+
+  handleTupData: (topology, tup, callback) =>
+    config = @topologies[topology]
 
     if not config.record
       console.log "PASSING THROUGH TUP", topology, tup.id
@@ -75,9 +127,9 @@ class TopologyManager
       """
 
       db.query tupQuery, (err, cursor) =>
+        callback()
 
-
-  setRecordMode: (name, shouldRecord) ->
+  setRecordMode: (name, shouldRecord, callback) ->
     console.log "SET RECORD", name, shouldRecord
 
     # Clear totals if we're just now engaging record
@@ -98,9 +150,6 @@ class TopologyManager
       @topologies[name] =
         graph: graph
         record: false
-        totals:
-          total: 0
-          nodes: {}
 
     callback graph
 

@@ -1,5 +1,7 @@
 vis = require 'vis'
+extend = require 'extend'
 request = require 'browser-request'
+getSchema = require './schema'
 
 require '../../css/views/topology_debugger.less'
 
@@ -8,6 +10,7 @@ View = Backbone.View.extend
   inspectNodeTemplate: require '../../html/views/node_inspect.jade'
   
   events:
+    'click .search-button': 'searchClicked'
     'click .inspect-bolt-link': 'inspectLinkClicked'
     'click .record-stop-button': 'recordStopClicked'
     'click .record-start-button': 'recordStartClicked'
@@ -40,10 +43,26 @@ View = Backbone.View.extend
 
     @
 
+  searchClicked: (event) ->
+    event.preventDefault()
+
+    val = @editor.getValue()
+    console.log "SEARCHING WITH", val
+
+    opts =
+      uri: "api/tups/search"
+      json: true
+      method: 'POST'
+      body: val
+
+    request opts, (err, res, body) =>
+      console.log "GOT RESPONSE", err, body
+      @$('.search-results').JSONView body, {collapsed: true}
+      @$('.search-results').JSONView 'expand', 1
+
   handleTotals: (totals) ->
     @totals = totals
 
-    console.log "TOTALS", totals
     for model in @collection.models
       name = model.get 'id'
       
@@ -106,6 +125,11 @@ View = Backbone.View.extend
 
     console.log "INSPECTING", context
 
+    val = @editor.getValue()
+    val = extend val,
+      source: id
+    @editor.setValue val
+
     @$('.node-inspect-container').html @inspectNodeTemplate(context)
 
   setupControls: ->
@@ -116,6 +140,20 @@ View = Backbone.View.extend
       collection: @collection
 
     @$('.results-table-container').html @table.render().el
+
+    nodeNames = []
+    for node in @nodes.get()
+      nodeNames.push node.id
+
+    @editor = window.editor = new JSONEditor @$('.search-controls').get(0),
+      theme: 'bootstrap3'
+      schema: getSchema nodeNames
+      iconlib: "fontawesome4"
+      disable_collapse: true
+      disable_edit_json: true
+      keep_oneof_values: false
+      disable_properties: true
+      no_additional_properties: true
 
   getNetworkData: ->
     nodes = new vis.DataSet
@@ -128,16 +166,16 @@ View = Backbone.View.extend
         type: 'bolt'
         value: total
         label: bolt.id
-        title: "#{bolt.id} - #{total} captured"
+        title: "#{bolt.id} - #{total} tups"
 
     for spout in @topology.spouts
-      total = @totals?.nodes[bolt.id] || 0
+      total = @totals?.nodes[spout.id] || 0
       nodes.add
         id: spout.id
         type: 'spout'
         value: total
         label: spout.id
-        title: "#{spout.id} - #{total} captured"
+        title: "#{spout.id} - #{total} tups"
         shape: 'triangle'
 
     for stream in @topology.streams
@@ -150,12 +188,12 @@ View = Backbone.View.extend
     {streams: streams, nodes: nodes}
 
   updateTopoGraph: ->
-
     for name, total of @totals.nodes
       @network.nodesHandler.body.data.nodes.update [
         {
           id: name
           value: total
+          title: "#{name} - #{total} captured"
         }
       ]
 

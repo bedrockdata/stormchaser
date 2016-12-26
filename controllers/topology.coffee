@@ -3,6 +3,10 @@ class TopologyController
 
   constructor: (@manager) ->
 
+  search: (req, res) =>
+    @manager.search req.body, (results) ->
+      res.json results
+
   getTopology: (req, res) =>
     name = req.params.name
     @manager.loadTopology name, (topology) ->
@@ -15,13 +19,13 @@ class TopologyController
   recordon: (req, res) =>
     console.log "RECORD ON"
     name = req.params.name
-    @manager.setRecordMode name, true
-    res.json ok: true
+    @manager.setRecordMode name, true, ->
+      res.json ok: true
 
   recordoff: (req, res) =>
     console.log "RECORD OFF"
     name = req.params.name
-    @manager.setRecordMode name, false
-    res.json ok: true
+    @manager.setRecordMode name, false, ->
+      res.json ok: true
 
 module.exports = TopologyController
