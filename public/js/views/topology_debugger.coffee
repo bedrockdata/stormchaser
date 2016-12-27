@@ -11,6 +11,8 @@ View = Backbone.View.extend
   
   events:
     'click .search-button': 'searchClicked'
+    'click .delete-button': 'deleteClicked'
+    'click .upstream-button': 'upstreamClicked'
     'click .inspect-bolt-link': 'inspectLinkClicked'
     'click .record-stop-button': 'recordStopClicked'
     'click .record-start-button': 'recordStartClicked'
@@ -28,10 +30,10 @@ View = Backbone.View.extend
       method: 'GET'
 
     request opts, (err, res, body) =>
-      console.log "GOT TOPOLOGY", body
       @topology = body
       @$el.html @template()
       @$('.record-stop-button').hide()
+      @$('.delete-button').hide()
 
       @setupTopoGraph()
       @setupControls()
@@ -43,22 +45,47 @@ View = Backbone.View.extend
 
     @
 
+  deleteClicked: (event) ->
+    event.preventDefault()
+
+    opts =
+      uri: "api/tups/delete/#{@name}"
+      json: true
+      method: 'POST'
+      body: {}
+
+    request opts, (err, res, body) =>
+      @$('.delete-button').hide()
+
   searchClicked: (event) ->
     event.preventDefault()
 
     val = @editor.getValue()
-    console.log "SEARCHING WITH", val
 
     opts =
-      uri: "api/tups/search"
+      uri: "api/tups/search/#{@name}"
       json: true
       method: 'POST'
       body: val
 
     request opts, (err, res, body) =>
-      console.log "GOT RESPONSE", err, body
       @$('.search-results').JSONView body, {collapsed: true}
       @$('.search-results').JSONView 'expand', 1
+
+  upstreamClicked: (event) ->
+    event.preventDefault()
+
+    val = @upstreamEditor.getValue()
+
+    opts =
+      uri: "api/tups/upstream/#{@name}/#{val.id}"
+      json: true
+      method: 'GET'
+      body: val
+
+    request opts, (err, res, body) =>
+      @$('.upstream-results').JSONView body, {collapsed: true}
+      @$('.upstream-results').JSONView 'expand', 1
 
   handleTotals: (totals) ->
     @totals = totals
@@ -72,6 +99,9 @@ View = Backbone.View.extend
     @table.render()
     @updateTopoGraph()
     @updateTotalsDisplay()
+
+    if totals.total > 0
+      @$('.delete-button').show()
 
   updateTotalsDisplay: ->
     @$('.total-display').text "#{@totals.total} events captured"
@@ -123,8 +153,6 @@ View = Backbone.View.extend
       id: id
       defs: @getNodeDefs(id)
 
-    console.log "INSPECTING", context
-
     val = @editor.getValue()
     val = extend val,
       source: id
@@ -147,7 +175,17 @@ View = Backbone.View.extend
 
     @editor = window.editor = new JSONEditor @$('.search-controls').get(0),
       theme: 'bootstrap3'
-      schema: getSchema nodeNames
+      schema: getSchema(nodeNames).search
+      iconlib: "fontawesome4"
+      disable_collapse: true
+      disable_edit_json: true
+      keep_oneof_values: false
+      disable_properties: true
+      no_additional_properties: true
+
+    @upstreamEditor = window.editor = new JSONEditor @$('.upstream-controls').get(0),
+      theme: 'bootstrap3'
+      schema: getSchema(nodeNames).upstream
       iconlib: "fontawesome4"
       disable_collapse: true
       disable_edit_json: true

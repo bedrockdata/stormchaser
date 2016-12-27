@@ -158,7 +158,9 @@ app.get '/account/unlink/:provider', passportConf.isAuthenticated, userControlle
 ###
 
 app.get '/api/users', userController.getAll
-app.post '/api/tups/search', topologyController.search
+app.post '/api/tups/search/:topology', topologyController.search
+app.post '/api/tups/delete/:topology', topologyController.delete
+app.get '/api/tups/upstream/:topology/:tupid', topologyController.upstream
 app.get '/api/topologies', topologyController.getTopologies
 app.get '/api/topologies/:name', topologyController.getTopology
 app.post '/api/topologies/:name/recordon', topologyController.recordon

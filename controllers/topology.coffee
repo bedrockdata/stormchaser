@@ -7,10 +7,22 @@ class TopologyController
     @manager.search req.body, (results) ->
       res.json results
 
+  delete: (req, res) =>
+    topology = req.params.topology
+    @manager.truncate topology, (results) ->
+      res.json results
+
+  upstream: (req, res) =>
+    id = req.params.tupid
+    topo = req.params.topology
+    
+    @manager.upstream id, topo, (results) ->
+      res.json results
+
   getTopology: (req, res) =>
     name = req.params.name
-    @manager.loadTopology name, (topology) ->
-      res.json topology
+    topology = @manager.loadTopology name
+    res.json topology
 
   getTopologies: (req, res) =>
     @manager.loadTopologies (topologies) ->

@@ -12,13 +12,28 @@
   .row
     button.btn.btn-lrg.btn-danger.record-start-button Record
     button.btn.btn-lrg.btn-danger.record-stop-button Recording...
+    button.btn.btn-lrg.btn-default.delete-button Delete recording
 
   .total-display
 
   .row
     .node-inspect-container
 
-  .search-controls
-  a.btn.btn-lg.btn-primary.search-button Search
+  ul.nav.nav-tabs(role='tablist')
+    li.active(role='presentation')
+      a(href='#search', aria-controls='search', role='tab', data-toggle='tab') Search
+    li(role='presentation')
+      a(href='#upstream', aria-controls='upstream', role='tab', data-toggle='tab') Upstream
 
-  .search-results
+  .tab-content
+    #search.tab-pane.active(role='tabpanel')
+      .search-controls
+      a.btn.btn-lg.btn-primary.search-button Search
+
+      .search-results
+
+    #upstream.tab-pane.active(role='tabpanel')
+      .upstream-controls
+      a.btn.btn-lg.btn-primary.upstream-button Get Upstream
+
+      .upstream-results
