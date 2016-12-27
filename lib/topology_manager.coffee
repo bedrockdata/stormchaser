@@ -40,7 +40,7 @@ class TopologyManager
     if config.value is ""
       query = """
         for tup in tups
-          FILTER tup.component == "#{config.source}"
+          FILTER tup.component == "#{config.source}" && tup.stream == "#{config.stream}"
           LIMIT #{config.limit || 10}
           RETURN tup
       """
