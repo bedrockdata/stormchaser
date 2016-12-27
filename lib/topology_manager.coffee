@@ -49,7 +49,7 @@ class TopologyManager
 
       if config.path
         filter = """
-          FILTER tup.values[#{config.index}].#{path} == #{config.value}
+          FILTER tup.values[#{config.index}].#{config.path} == #{config.value}
         """
       else
         filter = """
