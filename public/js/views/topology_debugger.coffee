@@ -21,7 +21,10 @@ View = Backbone.View.extend
     {@name} = options
 
     stormchaser.socket.on 'totals', (data) =>
-      @handleTotals data
+      {totals, topo} = data
+
+      if topo is @name
+        @handleTotals topo, totals
 
   render: ->
     opts =
@@ -87,7 +90,7 @@ View = Backbone.View.extend
       @$('.upstream-results').JSONView body, {collapsed: true}
       @$('.upstream-results').JSONView 'expand', 1
 
-  handleTotals: (totals) ->
+  handleTotals: (topo, totals) ->
     @totals = totals
 
     for model in @collection.models

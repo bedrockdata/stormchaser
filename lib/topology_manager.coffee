@@ -16,11 +16,15 @@ class TopologyManager
       for name, config of @topologies
         for guid, client of @clients
           if config.totals
-            client.emit 'totals', config.totals
+            client.emit 'totals',
+              topo: name
+              totals: config.totals
           else
-            @calculateTotals name, config, (totals) ->
-              config.totals = totals
-              client.emit 'totals', config.totals
+            @calculateTotals name, config, (topo, finalConfig, totals) ->
+              finalConfig.totals = totals
+              client.emit 'totals',
+                topo: topo
+                totals: finalConfig.totals
     , 2000
 
   setSockets: (@sockets) ->
@@ -94,6 +98,7 @@ class TopologyManager
   calculateTotals: (name, config, callback) ->
     query = """
       for tup in tups
+        FILTER tup.topology == "#{name}"
         COLLECT component = tup.component WITH COUNT INTO total
         return {component, total}
     """
@@ -110,7 +115,7 @@ class TopologyManager
           total: total
           nodes: nodes
 
-        callback totals
+        callback name, config, totals
 
   getUpstreamNodes: (node, graph) ->
     upstream = []
@@ -144,10 +149,8 @@ class TopologyManager
     else
       console.log "RECORDING TUP", topology, tup.id
 
-    # upstreams = @getUpstreamNodes
-    # async.each upstreams, (upstream, next) ->
+    tup.topology = topology
 
-    # , (err) ->
     @upsertTup tup, ->
       callback()
 
