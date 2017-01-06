@@ -15,16 +15,11 @@ class TopologyManager
     setInterval () =>
       for name, config of @topologies
         for guid, client of @clients
-          if config.totals
+          @calculateTotals name, config, (topo, finalConfig, totals) ->
+            finalConfig.totals = totals
             client.emit 'totals',
-              topo: name
-              totals: config.totals
-          else
-            @calculateTotals name, config, (topo, finalConfig, totals) ->
-              finalConfig.totals = totals
-              client.emit 'totals',
-                topo: topo
-                totals: finalConfig.totals
+              topo: topo
+              totals: finalConfig.totals
     , 2000
 
   setSockets: (@sockets) ->

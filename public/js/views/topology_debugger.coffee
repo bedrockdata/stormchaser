@@ -36,7 +36,7 @@ View = Backbone.View.extend
       @topology = body
       @$el.html @template()
       @$('.record-stop-button').hide()
-      @$('.delete-button').hide()
+      # @$('.delete-button').hide()
 
       @setupTopoGraph()
       @setupControls()
@@ -91,6 +91,7 @@ View = Backbone.View.extend
       @$('.upstream-results').JSONView 'expand', 1
 
   handleTotals: (topo, totals) ->
+    console.log "UPDATING TOTALS", topo, totals
     @totals = totals
 
     for model in @collection.models
