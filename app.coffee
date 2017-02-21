@@ -37,7 +37,6 @@ manager = new TopologyManager
 # Controllers (route handlers).
 ###
 
-apiController = require './controllers/api'
 homeController = require './controllers/home'
 
 userController = new UserController
@@ -47,31 +46,14 @@ DataTypeController = require './controllers/datatype'
 dataTypeController = new DataTypeController
 StreamController = require './controllers/stream'
 streamController = new StreamController emitter
-contactController = require './controllers/contact'
 TopologyController = require './controllers/topology'
 topologyController = new TopologyController manager
-
-###*
-# API keys and Passport configuration.
-###
-
-secrets = require './config/secrets'
-passportConf = require './config/passport'
 
 ###*
 # Create Express server.
 ###
 
 app = express()
-
-###*
-# Connect to MongoDB.
-###
-
-mongoose.connect secrets.db
-mongoose.connection.on 'error', ->
-  console.error 'MongoDB Connection Error. Please make sure that MongoDB is running.'
-  return
 
 ###*
 # Express configuration.
@@ -113,11 +95,8 @@ app.use cookieParser()
 masterSession = session
   resave: true
   saveUninitialized: true
-  secret: secrets.sessionSecret
-  store: new MongoStore
-    url: secrets.db
-    autoReconnect: true
-
+  secret: 'mysessionsecret'
+  
 app.use masterSession
 app.use passport.initialize()
 app.use passport.session()
@@ -138,7 +117,6 @@ app.get '/', (req, res) ->
 app.get '/index.html', (req, res) ->
   res.sendFile __dirname + '/index.html'
 
-app.get '/user', passportConf.isAuthenticated, userController.getUser
 app.post '/login', userController.postLogin
 app.get '/logout', userController.logout
 app.get '/forgot', userController.getForgot
@@ -147,11 +125,6 @@ app.get '/reset/:token', userController.getReset
 app.post '/reset/:token', userController.postReset
 app.get '/signup', userController.getSignup
 app.post '/signup', userController.postSignup
-app.get '/account', passportConf.isAuthenticated, userController.getAccount
-app.post '/account/profile', passportConf.isAuthenticated, userController.postUpdateProfile
-app.post '/account/password', passportConf.isAuthenticated, userController.postUpdatePassword
-app.post '/account/delete', passportConf.isAuthenticated, userController.postDeleteAccount
-app.get '/account/unlink/:provider', passportConf.isAuthenticated, userController.getOauthUnlink
 
 ###*
 # App routes

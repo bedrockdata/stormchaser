@@ -1,7 +1,6 @@
 uuid = require 'node-uuid'
 Socket = require 'socket.io'
 bundle = require 'socket.io-bundle'
-secrets = require '../config/secrets'
 
 class Sockets
   constructor: (@server, @app, @session) ->

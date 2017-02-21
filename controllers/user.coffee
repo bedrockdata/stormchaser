@@ -6,7 +6,6 @@ passport = require 'passport'
 User = require '../models/user'
 Stream = require '../models/stream'
 DataType = require '../models/data_type'
-secrets = require '../config/secrets'
 
 class UserController
   constructor: (@api) ->
