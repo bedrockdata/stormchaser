@@ -1,9 +1,9 @@
 {
-  "name": "hackathon-starter",
-  "version": "3.0.2",
+  "name": "stormchaser",
+  "version": "0.0.1",
   "repository": {
     "type": "git",
-    "url": "https://github.com/sahat/hackathon-starter.git"
+    "url": "https://github.com/bedrockdata/stormchaser.git"
   },
   "scripts": {
     "start": "./node_modules/coffee-script/bin/coffee app.coffee",
