@@ -12,9 +12,9 @@ Pre-alpha software, not for production use
 
 ### Prequisites
 
-[node.js](https://nodejs.org/) installed locally
-An [Apache Storm](http://storm.apache.org/) topology you want to inspect/test/debug
-A local [ArangoDB](https://www.arangodb.com/) server on port 8529 (the default)
+- [node.js](https://nodejs.org/) installed locally
+- An [Apache Storm](http://storm.apache.org/) topology you want to inspect/test/debug
+- A local [ArangoDB](https://www.arangodb.com/) server on port 8529 (the default)
 
 ### Stormchaser App
 
